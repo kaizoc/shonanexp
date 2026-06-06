@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>湘南新宿ライン時刻表</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: "Noto Sans JP", "Helvetica Neue", Arial, sans-serif;
+            background: #f3f6fb;
+            color: #1f2937;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 16px;
+            background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 35%),
+                linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%);
+        }
+
+        .page {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+        }
+
+        h2 {
+            margin: 0 0 18px;
+            font-size: clamp(1.4rem, 2.4vw, 2rem);
+            line-height: 1.2;
+            letter-spacing: -0.03em;
+            color: #0f172a;
+        }
+
+        .subtitle {
+            margin: 0 0 16px;
+            color: #475569;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .refresh-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 999px;
+            background: #2563eb;
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.24s ease;
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.16);
+        }
+
+        .refresh-button:hover {
+            background: #1d4ed8;
+        }
+
+        .display {
+            display: grid;
+            gap: 12px;
+        }
+
+        .train {
+            display: grid;
+            grid-template-columns: minmax(64px, 80px) 1fr auto;
+            gap: 12px;
+            align-items: center;
+            padding: 16px 18px;
+            background: #f8fafc;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            border-radius: 16px;
+        }
+
+        .train span {
+            display: block;
+            line-height: 1.2;
+        }
+
+        .time {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .type {
+            font-size: 0.98rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(59, 130, 246, 0.12);
+            color: #1d4ed8;
+        }
+
+        .rapid {
+            background: rgba(239, 68, 68, 0.12);
+            color: #dc2626;
+        }
+
+        .special {
+            background: rgba(249, 115, 22, 0.12);
+            color: #c2410c;
+        }
+
+        .destination {
+            text-align: right;
+            font-size: 0.98rem;
+            color: #334155;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
+            .page {
+                padding: 16px;
+                border-radius: 18px;
+            }
+
+            .train {
+                grid-template-columns: 1fr;
+                text-align: left;
+            }
+
+            .destination {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <h2>直近の横浜方面行き</h2>
+        <p class="subtitle">現在時刻に近い列車を自動で表示します。30秒ごとに更新されます。</p>
+        <button class="refresh-button" type="button" onclick="show()">更新する</button>
+        <div id="display" class="display"></div>
+    </div>
+
+    <script>
+        // 静的な時刻表データ（時間、分、種別、行先）
+        const data = [
+            { h: 6, m: 34, t: "快速", d: "小田原" },
+            { h: 7, m: 10, t: "普通", d: "大船" },
+            { h: 7, m: 30, t: "快速", d: "平塚" },
+            { h: 7, m: 43, t: "普通", d: "大船" },
+            { h: 7, m: 54, t: "快速", d: "小田原" },
+            { h: 8, m: 7, t: "普通", d: "逗子" },
+            { h: 8, m: 13, t: "快速", d: "国府津" },
+            { h: 8, m: 39, t: "普通", d: "逗子" },
+            { h: 8, m: 46, t: "特別快速", d: "小田原" },
+            { h: 9, m: 4, t: "普通", d: "逗子" },
+            { h: 9, m: 26, t: "快速", d: "小田原" },
+            { h: 9, m: 43, t: "普通", d: "逗子" },
+            { h: 9, m: 53, t: "特別快速", d: "小田原" },
+            { h: 9, m: 59, t: "快速", d: "国府津" },
+            { h: 10, m: 9, t: "普通", d: "逗子" },
+            { h: 10, m: 24, t: "快速", d: "平塚" },
+            { h: 10, m: 39, t: "普通", d: "逗子" },
+            { h: 10, m: 53, t: "特別快速", d: "小田原" },
+            { h: 11, m: 9, t: "普通", d: "逗子" },
+            { h: 11, m: 24, t: "快速", d: "平塚" },
+            { h: 11, m: 39, t: "普通", d: "逗子" },
+            { h: 11, m: 54, t: "特別快速", d: "小田原" },
+            { h: 12, m: 9, t: "普通", d: "逗子" },
+            { h: 12, m: 24, t: "快速", d: "平塚" },
+            { h: 12, m: 38, t: "普通", d: "逗子" },
+            { h: 12, m: 53, t: "特別快速", d: "小田原" },
+            { h: 13, m: 9, t: "普通", d: "逗子" },
+            { h: 13, m: 24, t: "快速", d: "平塚" },
+            { h: 13, m: 38, t: "普通", d: "逗子" },
+            { h: 13, m: 53, t: "特別快速", d: "小田原" },
+            { h: 14, m: 9, t: "普通", d: "逗子" },
+            { h: 14, m: 24, t: "快速", d: "国府津" },
+            { h: 14, m: 39, t: "普通", d: "逗子" },
+            { h: 14, m: 53, t: "特別快速", d: "小田原" },
+            { h: 15, m: 9, t: "普通", d: "逗子" },
+            { h: 15, m: 24, t: "快速", d: "平塚" },
+            { h: 15, m: 39, t: "普通", d: "逗子" },
+            { h: 15, m: 53, t: "特別快速", d: "小田原" },
+            { h: 16, m: 9, t: "普通", d: "逗子" },
+            { h: 16, m: 23, t: "快速", d: "平塚" },
+            { h: 16, m: 38, t: "普通", d: "逗子" },
+            { h: 16, m: 53, t: "特別快速", d: "小田原" },
+            { h: 17, m: 10, t: "普通", d: "逗子" },
+            { h: 17, m: 27, t: "快速", d: "平塚" },
+            { h: 17, m: 42, t: "普通", d: "逗子" },
+            { h: 17, m: 54, t: "快速", d: "小田原" },
+            { h: 18, m: 12, t: "普通", d: "逗子" },
+            { h: 18, m: 24, t: "快速", d: "国府津" },
+            { h: 18, m: 44, t: "普通", d: "逗子" },
+            { h: 19, m: 2, t: "快速", d: "平塚" },
+            { h: 19, m: 14, t: "普通", d: "大船" },
+            { h: 19, m: 25, t: "快速", d: "平塚" },
+            { h: 19, m: 37, t: "普通", d: "逗子" },
+            { h: 19, m: 59, t: "快速", d: "小田原" },
+            { h: 20, m: 11, t: "普通", d: "逗子" },
+            { h: 20, m: 23, t: "快速", d: "国府津" },
+            { h: 20, m: 37, t: "普通", d: "大船" },
+            { h: 20, m: 59, t: "快速", d: "小田原" },
+            { h: 21, m: 14, t: "普通", d: "大船" },
+            { h: 21, m: 37, t: "普通", d: "逗子" },
+            { h: 21, m: 53, t: "快速", d: "小田原" },
+            { h: 22, m: 19, t: "普通", d: "大船" },
+            { h: 22, m: 35, t: "快速", d: "小田原" },
+            { h: 22, m: 52, t: "快速", d: "国府津" }
+        ];
+
+        function show() {
+            const now = new Date();
+            const h = now.getHours(), m = now.getMinutes();
+
+            // 現在時刻以降の列車を5件抽出
+            const next = data.filter(x => x.h > h || (x.h === h && x.m >= m)).slice(0, 5);
+            
+            document.getElementById("display").innerHTML = next.map(x => `
+                <div class="train">
+                    <span>${x.h}:${String(x.m).padStart(2, '0')}</span>
+                    <span class="${x.t === '快速' ? 'rapid' : x.t === '特別快速' ? 'special' : ''}">${x.t}</span>
+                    <span>${x.d}行</span>
+                </div>
+            `).join('');
+        }
+        show();
+        setInterval(show, 30000); // 30秒ごとに更新
+    </script>
+</body>
+</html>
