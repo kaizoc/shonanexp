@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>湘南新宿ライン時刻表</title>
+    <title>池袋駅発SSL</title>
     <style>
         :root {
             color-scheme: light;
@@ -49,24 +49,6 @@
             line-height: 1.6;
         }
 
-        .refresh-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 16px;
-            margin: 0;
-            border: none;
-            border-radius: 999px;
-            background: #2563eb;
-            color: #ffffff;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.24s ease;
-            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.16);
-        }
-
         .header {
             display: flex;
             align-items: center;
@@ -81,10 +63,6 @@
                 align-items: flex-start;
                 gap: 8px;
             }
-        }
-
-        .refresh-button:hover {
-            background: #1d4ed8;
         }
 
         .display {
@@ -164,8 +142,7 @@
 <body>
     <div class="page">
         <div class="header">
-            <h2>直近の横浜方面行き</h2>
-            <button class="refresh-button" type="button" onclick="show()">更新する</button>
+            <h2>池袋駅発SSL直近の横浜方面行き</h2>
         </div>
         <p class="subtitle">現在時刻に近い列車を自動で表示します。30秒ごとに更新されます。</p>
         <div id="display" class="display"></div>
